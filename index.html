@@ -245,6 +245,66 @@
             color: var(--accent);
         }
 
+        .step-content kbd {
+            font-family: 'SF Mono', Menlo, monospace;
+            font-size: 12px;
+            background: var(--bg-accent);
+            border: 1px solid var(--rule);
+            padding: 1px 6px;
+            border-radius: 3px;
+            color: var(--ink);
+        }
+
+        .step-hint {
+            margin-top: 14px !important;
+            font-size: 14px !important;
+            color: var(--ink-soft) !important;
+            line-height: 1.6 !important;
+        }
+
+        .ai-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .ai-link {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--rule);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--ink);
+            transition: all 0.15s ease;
+        }
+
+        .ai-link:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .ai-link-name {
+            font-family: var(--serif);
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .ai-link-tag {
+            font-size: 11px;
+            color: var(--ink-faint);
+        }
+
+        @media (max-width: 600px) {
+            .ai-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Example cards */
         .examples-grid {
             display: grid;
@@ -442,12 +502,12 @@
                 <div class="step">
                     <div class="step-num">1</div>
                     <div class="step-content">
-                        <h3>把下面这段 skill 复制到你的 AI 对话框</h3>
-                        <p>用你常用的 AI 都行:Claude、ChatGPT、DeepSeek、豆包……粘贴 skill 后说一句"帮我做个打卡计划",它会引导你聊几轮。</p>
+                        <h3>复制下面这段「AI 提示词」</h3>
+                        <p>这是写给 AI 的一段引导文。等下粘贴给 AI 用,它会主动问你几个问题,然后给你出计划。</p>
                         <div class="prompt-block">
                             <div class="prompt-block-head">
-                                <span class="prompt-block-label">复制下面整段 → 粘贴到 AI 对话框</span>
-                                <button class="prompt-copy" id="copy-skill">复制 skill</button>
+                                <span class="prompt-block-label">点右边按钮复制 →</span>
+                                <button class="prompt-copy" id="copy-skill">复制提示词</button>
                             </div>
                             <pre id="skill-content">加载中...</pre>
                         </div>
@@ -457,16 +517,31 @@
                 <div class="step">
                     <div class="step-num">2</div>
                     <div class="step-content">
-                        <h3>把 AI 输出的计划保存为 <code>.md</code> 文件</h3>
-                        <p>AI 聊完后会给你一份完整的 markdown 文件。复制整段,保存为 <code>my-plan.md</code>(名字随意)。这份文件就是你的"计划存档"——可以贴到 Notion、网盘、随时回看。</p>
+                        <h3>打开一个 AI 网站,粘贴进去,跟它聊</h3>
+                        <p>用下面任何一个都行,国内可以直接打开,不用翻墙:</p>
+                        <div class="ai-links">
+                            <a href="https://chat.deepseek.com" target="_blank" rel="noopener" class="ai-link">
+                                <span class="ai-link-name">DeepSeek</span>
+                                <span class="ai-link-tag">推荐 · 免登录可用</span>
+                            </a>
+                            <a href="https://www.doubao.com/chat" target="_blank" rel="noopener" class="ai-link">
+                                <span class="ai-link-name">豆包</span>
+                                <span class="ai-link-tag">字节出品 · 微信扫码</span>
+                            </a>
+                            <a href="https://kimi.moonshot.cn" target="_blank" rel="noopener" class="ai-link">
+                                <span class="ai-link-name">Kimi</span>
+                                <span class="ai-link-tag">月之暗面 · 擅长长对话</span>
+                            </a>
+                        </div>
+                        <p class="step-hint">打开后,在对话框 <kbd>Ctrl/Cmd + V</kbd> 粘贴 → 回车 → AI 会主动问你几个问题(目标、当前水平、每天能投入多久),如实回答即可。</p>
                     </div>
                 </div>
 
                 <div class="step">
                     <div class="step-num">3</div>
                     <div class="step-content">
-                        <h3>打开追踪器,导入文件,开始打卡</h3>
-                        <p>点 <a href="tracker.html" style="color: var(--accent);">打开追踪器 →</a>,在右下角点「导入计划」,选你刚保存的 <code>.md</code>。每天来打卡,12 周后你会看到变化。</p>
+                        <h3>把 AI 最后输出的内容,粘贴回追踪器</h3>
+                        <p>AI 聊完后会一次性输出一份完整的计划(挺长一段)。复制整段,打开 <a href="tracker.html" style="color: var(--accent);">追踪器 →</a>,点右下角「导入计划」,把内容粘贴进去就行。<strong>不用保存任何文件</strong>。</p>
                     </div>
                 </div>
             </div>

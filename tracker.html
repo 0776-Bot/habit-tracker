@@ -849,6 +849,31 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="import-modal">
+        <div class="modal" style="max-width: 560px;">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">导入新计划</h2>
+                    <p class="modal-subtitle">把 AI 给你的完整回复粘贴下面 · 系统会自动找配置</p>
+                </div>
+                <button class="modal-close" id="import-modal-close" aria-label="关闭">×</button>
+            </div>
+            <textarea id="import-textarea"
+                placeholder="例:把 AI 输出的整段内容粘贴在这里(从第一行 # 开始,到最后一段 ``` 结束,都包含进来)..."
+                style="width: 100%; min-height: 220px; padding: 12px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 12px; line-height: 1.5; resize: vertical; box-sizing: border-box;"></textarea>
+            <div id="import-error" style="display: none; margin-top: 10px; padding: 10px 12px; background: #fde8e8; color: #9b1c1c; border-radius: var(--border-radius-md); font-size: 12px; line-height: 1.5; white-space: pre-wrap;"></div>
+            <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span style="font-size: 12px; color: var(--color-text-tertiary);">
+                    或 <a href="#" id="import-from-file-link" style="color: var(--color-text-info); text-decoration: underline;">从 .md 文件导入</a>
+                </span>
+                <div class="modal-actions">
+                    <button id="import-cancel">取消</button>
+                    <button class="modal-btn-primary" id="import-submit">导入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
         // 配置区 · 改这里就能换内容
@@ -1180,7 +1205,7 @@
             const dayData = getDayData(weekNum, dayNum);
             const completedCount = getDayCompletedCount(weekNum, dayNum);
             const isCheckedIn = completedCount >= MIN_TASKS_FOR_CHECKIN;
-            const isFullDay = completedCount === 4;
+            const isFullDay = completedCount === dailyTasks.length;
 
             const card = document.createElement('div');
             card.className = 'today-card' + (isCheckedIn ? ' all-done' : '');
@@ -1189,9 +1214,9 @@
             if (isFullDay) {
                 statusText = '今日全勤 ✓';
             } else if (isCheckedIn) {
-                statusText = `今日已打卡（${completedCount} / 4 项）`;
+                statusText = `今日已打卡（${completedCount} / ${dailyTasks.length} 项）`;
             } else {
-                statusText = `已完成 ${completedCount} / 4 项 · 完成 ${MIN_TASKS_FOR_CHECKIN} 项即算打卡`;
+                statusText = `已完成 ${completedCount} / ${dailyTasks.length} 项 · 完成 ${MIN_TASKS_FOR_CHECKIN} 项即算打卡`;
             }
 
             card.innerHTML = `
@@ -1376,7 +1401,7 @@
             dailyTasks.forEach(task => {
                 const count = getTaskCompletedDays(task.id);
                 const percent = Math.round((count / TOTAL_DAYS) * 100);
-                document.getElementById(`dim-${task.id}`).textContent = `${count} / TOTAL_DAYS`;
+                document.getElementById(`dim-${task.id}`).textContent = `${count} / ${TOTAL_DAYS}`;
                 document.getElementById(`dim-${task.id}-bar`).style.width = `${percent}%`;
             });
         }
@@ -1564,7 +1589,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `english-plan-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `${CONFIG.storageKey}-backup-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
         });
@@ -1599,7 +1624,7 @@
         });
 
         // ============================================================
-        // 导入计划(从 .md 文件提取 CONFIG)
+        // 导入计划(从文本或 .md 文件提取 CONFIG)
         // ============================================================
         function extractConfigFromText(text) {
             // 尝试 1: 从 ```json ... ``` 代码块提取
@@ -1628,10 +1653,108 @@
             } catch (e) {
                 // 不是 JSON
             }
-            return { error: '在文件里没找到 json 代码块,也不是纯 JSON 文件。请检查文件格式。' };
+            return { error: '没找到有效的配置内容 · 请确认粘贴了 AI 的完整输出(包含 ```json 代码块那部分)' };
         }
 
-        document.getElementById('import-plan-btn').addEventListener('click', () => {
+        // 共享的导入处理函数 · 粘贴和文件两个入口都走这里
+        function processImportedText(text) {
+            const result = extractConfigFromText(text);
+            
+            if (result.error) {
+                return { success: false, error: result.error };
+            }
+            
+            const errors = validateConfig(result.config);
+            if (errors.length > 0) {
+                return { success: false, error: '配置校验失败:\n' + errors.join('\n') };
+            }
+            
+            // 计划合法,询问是否清空旧打卡数据
+            const newPlanTitle = result.config.title;
+            const newStorageKey = result.config.storageKey;
+            const currentStorageKey = CONFIG.storageKey;
+            const hasOldData = Object.keys(planData).length > 0;
+            
+            let confirmMsg = `准备导入新计划:「${newPlanTitle}」\n\n`;
+            let shouldClearData = true;
+            
+            if (hasOldData && newStorageKey === currentStorageKey) {
+                confirmMsg += '检测到当前已有打卡记录,且新计划的 storageKey 与当前相同。\n\n';
+                confirmMsg += '点击"确定" = 保留当前打卡记录\n';
+                confirmMsg += '点击"取消" = 清空打卡重新开始';
+                shouldClearData = !confirm(confirmMsg);
+            } else if (hasOldData) {
+                confirmMsg += '检测到当前已有打卡记录。新计划使用不同的 storageKey,旧打卡数据会保留在原 key 下但不会显示。\n\n';
+                confirmMsg += '点击"确定"继续导入,点击"取消"取消导入。';
+                if (!confirm(confirmMsg)) {
+                    return { success: false, cancelled: true };
+                }
+            } else {
+                confirmMsg += '点击"确定"导入计划,开始打卡。';
+                if (!confirm(confirmMsg)) {
+                    return { success: false, cancelled: true };
+                }
+            }
+            
+            // 保存新 CONFIG
+            localStorage.setItem(IMPORTED_CONFIG_KEY, JSON.stringify(result.config));
+            
+            // 如果用户同意清空,且 storageKey 相同 → 清空打卡
+            if (shouldClearData && newStorageKey === currentStorageKey) {
+                localStorage.removeItem(currentStorageKey);
+            }
+            
+            // 重置开始日期为新计划的
+            localStorage.setItem('planStartDate', result.config.startDate);
+            
+            alert('计划导入成功!页面即将刷新。');
+            location.reload();
+            return { success: true };
+        }
+
+        function openImportModal() {
+            document.getElementById('import-textarea').value = '';
+            document.getElementById('import-error').style.display = 'none';
+            document.getElementById('import-modal').classList.add('show');
+            setTimeout(() => document.getElementById('import-textarea').focus(), 100);
+        }
+
+        function closeImportModal() {
+            document.getElementById('import-modal').classList.remove('show');
+        }
+
+        function showImportError(msg) {
+            const errEl = document.getElementById('import-error');
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+        }
+
+        document.getElementById('import-plan-btn').addEventListener('click', openImportModal);
+        document.getElementById('import-modal-close').addEventListener('click', closeImportModal);
+        document.getElementById('import-cancel').addEventListener('click', closeImportModal);
+        document.getElementById('import-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'import-modal') closeImportModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('import-modal').classList.contains('show')) {
+                closeImportModal();
+            }
+        });
+
+        document.getElementById('import-submit').addEventListener('click', () => {
+            const text = document.getElementById('import-textarea').value.trim();
+            if (!text) {
+                showImportError('请先粘贴 AI 给你的内容');
+                return;
+            }
+            const result = processImportedText(text);
+            if (!result.success && !result.cancelled) {
+                showImportError(result.error);
+            }
+        });
+
+        document.getElementById('import-from-file-link').addEventListener('click', (e) => {
+            e.preventDefault();
             document.getElementById('import-plan-file').click();
         });
 
@@ -1641,64 +1764,14 @@
             const reader = new FileReader();
             reader.onload = (event) => {
                 const text = event.target.result;
-                const result = extractConfigFromText(text);
-                
-                if (result.error) {
-                    alert('导入失败:\n\n' + result.error);
-                    e.target.value = '';
-                    return;
+                // 把文件内容回填到 textarea(让用户看到内容也方便排查问题),然后走同一套流程
+                document.getElementById('import-textarea').value = text;
+                document.getElementById('import-error').style.display = 'none';
+                const result = processImportedText(text);
+                if (!result.success && !result.cancelled) {
+                    showImportError(result.error);
                 }
-                
-                const errors = validateConfig(result.config);
-                if (errors.length > 0) {
-                    alert('计划配置校验失败,请检查文件:\n\n' + errors.join('\n'));
-                    e.target.value = '';
-                    return;
-                }
-                
-                // 计划合法,询问是否清空旧打卡数据
-                const newPlanTitle = result.config.title;
-                const newStorageKey = result.config.storageKey;
-                const currentStorageKey = CONFIG.storageKey;
-                const hasOldData = Object.keys(planData).length > 0;
-                
-                let confirmMsg = `准备导入新计划:「${newPlanTitle}」\n\n`;
-                let shouldClearData = true;
-                
-                if (hasOldData && newStorageKey === currentStorageKey) {
-                    // 同一个 storageKey,问是否保留打卡
-                    confirmMsg += '检测到当前已有打卡记录,且新计划的 storageKey 与当前相同。\n\n';
-                    confirmMsg += '点击"确定" = 保留当前打卡记录\n';
-                    confirmMsg += '点击"取消" = 清空打卡重新开始';
-                    shouldClearData = !confirm(confirmMsg);
-                } else if (hasOldData) {
-                    confirmMsg += '检测到当前已有打卡记录。新计划使用不同的 storageKey,旧打卡数据会保留在原 key 下但不会显示。\n\n';
-                    confirmMsg += '点击"确定"继续导入,点击"取消"取消导入。';
-                    if (!confirm(confirmMsg)) {
-                        e.target.value = '';
-                        return;
-                    }
-                } else {
-                    confirmMsg += '点击"确定"导入计划,开始打卡。';
-                    if (!confirm(confirmMsg)) {
-                        e.target.value = '';
-                        return;
-                    }
-                }
-                
-                // 保存新 CONFIG
-                localStorage.setItem(IMPORTED_CONFIG_KEY, JSON.stringify(result.config));
-                
-                // 如果用户同意清空,且 storageKey 相同 → 清空打卡
-                if (shouldClearData && newStorageKey === currentStorageKey) {
-                    localStorage.removeItem(currentStorageKey);
-                }
-                
-                // 重置开始日期为新计划的
-                localStorage.setItem('planStartDate', result.config.startDate);
-                
-                alert('计划导入成功!页面即将刷新。');
-                location.reload();
+                e.target.value = '';
             };
             reader.readAsText(file);
         });
