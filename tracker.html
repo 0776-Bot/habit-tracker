@@ -1627,33 +1627,76 @@
         // 导入计划(从文本或 .md 文件提取 CONFIG)
         // ============================================================
         function extractConfigFromText(text) {
-            // 尝试 1: 从 ```json ... ``` 代码块提取
+            // 尝试 1: 从 ```json ... ``` 代码块提取(最规范)
             const jsonBlock = text.match(/```json\s*([\s\S]*?)```/i);
             if (jsonBlock) {
                 try {
                     return { config: JSON.parse(jsonBlock[1].trim()), source: 'json-block' };
                 } catch (e) {
-                    return { error: 'json 代码块解析失败: ' + e.message };
+                    // 解析失败,继续往下试其他策略
                 }
             }
             // 尝试 2: 从 ```javascript const CONFIG = ... ``` 提取
             const jsBlock = text.match(/```(?:javascript|js)?\s*const\s+CONFIG\s*=\s*([\s\S]*?);\s*```/i);
             if (jsBlock) {
                 try {
-                    // 用 Function 解析(更安全),但仍要 JSON 化所需的形式
                     const obj = new Function('return ' + jsBlock[1])();
                     return { config: obj, source: 'js-block' };
                 } catch (e) {
-                    return { error: 'JavaScript CONFIG 块解析失败: ' + e.message };
+                    // 继续
                 }
             }
-            // 尝试 3: 文件本身就是 JSON
+            // 尝试 3: 文件本身就是纯 JSON
             try {
-                return { config: JSON.parse(text), source: 'plain-json' };
+                const trimmed = text.trim();
+                if (trimmed.startsWith('{')) {
+                    return { config: JSON.parse(trimmed), source: 'plain-json' };
+                }
             } catch (e) {
-                // 不是 JSON
+                // 继续
             }
-            return { error: '没找到有效的配置内容 · 请确认粘贴了 AI 的完整输出(包含 ```json 代码块那部分)' };
+            // 尝试 4(关键 fallback): 在 markdown 海里捞 JSON 对象
+            // 适用于:AI 输出代码块反引号丢失、有冗余说明文字、用户复制不全等情况
+            const embedded = findEmbeddedConfig(text);
+            if (embedded) {
+                return { config: embedded, source: 'embedded' };
+            }
+            return { error: '没找到有效的计划配置 · 请确认 AI 输出的内容已完整粘贴(从第一行到 JSON 结束)' };
+        }
+
+        // 扫描文本所有 `{`,用花括号配对截取,尝试解析,
+        // 找到看起来像 plan config 的对象(必须有 title 和 dailyTasks)
+        function findEmbeddedConfig(text) {
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] !== '{') continue;
+                let depth = 0;
+                let inString = false;
+                let escape = false;
+                for (let j = i; j < text.length; j++) {
+                    const c = text[j];
+                    if (escape) { escape = false; continue; }
+                    if (c === '\\') { escape = true; continue; }
+                    if (c === '"') { inString = !inString; continue; }
+                    if (inString) continue;
+                    if (c === '{') depth++;
+                    else if (c === '}') {
+                        depth--;
+                        if (depth === 0) {
+                            const candidate = text.substring(i, j + 1);
+                            try {
+                                const obj = JSON.parse(candidate);
+                                if (obj && typeof obj === 'object' && obj.title && Array.isArray(obj.dailyTasks)) {
+                                    return obj;
+                                }
+                            } catch (e) {
+                                // 这个 { } 块不是合法 JSON,跳过继续找下一个
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         // 共享的导入处理函数 · 粘贴和文件两个入口都走这里
