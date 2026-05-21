@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个性化打卡追踪器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/1.119.0/fonts/tabler-icons.min.css">
+    <style>
+        :root {
+            --color-background-primary: #ffffff;
+            --color-background-secondary: #f8f8f8;
+            --color-background-info: #e6f1fb;
+            --color-background-success: #eaf3de;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #666666;
+            --color-text-tertiary: #999999;
+            --color-text-info: #0c447c;
+            --color-text-success: #27500a;
+            --color-border-tertiary: rgba(0, 0, 0, 0.1);
+            --color-border-secondary: rgba(0, 0, 0, 0.2);
+            --color-border-info: #378add;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --color-listen: #378add;
+            --color-shadow: #1D9E75;
+            --color-write: #D85A30;
+            --color-read: #7F77DD;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background-primary: #1a1a1a;
+                --color-background-secondary: #2a2a2a;
+                --color-background-info: #0c447c;
+                --color-background-success: #173404;
+                --color-text-primary: #ffffff;
+                --color-text-secondary: #b0b0b0;
+                --color-text-tertiary: #808080;
+                --color-text-info: #85b7eb;
+                --color-text-success: #c0dd97;
+                --color-border-tertiary: rgba(255, 255, 255, 0.1);
+                --color-border-secondary: rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 16px;
+            background: var(--color-background-secondary);
+            color: var(--color-text-primary);
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 500;
+            margin: 0 0 4px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0 0 12px;
+        }
+
+        h3 {
+            font-size: 15px;
+            font-weight: 500;
+            margin: 0 0 8px;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 0 4px;
+        }
+
+        .header-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-info .subtitle {
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            margin: 0;
+        }
+
+        .streak-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .streak-icon {
+            font-size: 24px;
+            color: #3B6D11;
+        }
+
+        .streak-count {
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        .streak-label {
+            font-size: 11px;
+            color: var(--color-text-tertiary);
+            white-space: nowrap;
+        }
+
+        .today-card {
+            background: var(--color-background-primary);
+            border: 2px solid var(--color-border-info);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .today-card.all-done {
+            border-color: #27500a;
+            background: var(--color-background-success);
+        }
+
+        .today-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }
+
+        .today-date {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin: 0 0 4px;
+        }
+
+        .today-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .today-theme-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: var(--border-radius-md);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .today-progress {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin: 0 0 16px;
+        }
+
+        .today-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .today-task-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: var(--color-background-secondary);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .today-task-row:hover {
+            opacity: 0.85;
+        }
+
+        .today-task-row.done {
+            opacity: 0.5;
+        }
+
+        .today-task-row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            flex-shrink: 0;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+
+        .today-task-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .today-task-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .today-task-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 0 2px;
+        }
+
+        .today-task-detail {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .today-task-row.done .today-task-name {
+            text-decoration: line-through;
+        }
+
+        .today-content-card {
+            background: var(--color-background-secondary);
+            border-radius: var(--border-radius-md);
+            padding: 14px;
+        }
+
+        .today-content-title {
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            margin: 0 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .today-content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .today-content-item {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .today-content-label {
+            color: var(--color-text-tertiary);
+            margin-right: 4px;
+        }
+
+        .stats-row {
+            background: var(--color-background-primary);
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-lg);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+
+        .stats-row-title {
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            margin: 0 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dimension-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .dimension-item {
+            text-align: left;
+        }
+
+        .dimension-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .dimension-header i {
+            font-size: 14px;
+        }
+
+        .dimension-name {
+            font-size: 11px;
+            color: var(--color-text-secondary);
+        }
+
+        .dimension-value {
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 0 4px;
+        }
+
+        .dimension-bar {
+            height: 3px;
+            background: var(--color-background-secondary);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .dimension-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .this-week-card {
+            background: var(--color-background-primary);
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-lg);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .week-progress-text {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .days-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .day-mini {
+            background: var(--color-background-secondary);
+            border: 1px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-md);
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .day-mini:hover {
+            border-color: var(--color-border-secondary);
+        }
+
+        .day-mini.today {
+            border: 2px solid var(--color-border-info);
+        }
+
+        .day-mini.complete {
+            background: var(--theme-color);
+        }
+
+        .day-mini.future {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .day-mini-weekday {
+            font-size: 11px;
+            color: var(--color-text-tertiary);
+            margin: 0 0 2px;
+        }
+
+        .day-mini-date {
+            font-size: 13px;
+            font-weight: 500;
+            margin: 0 0 6px;
+        }
+
+        .day-mini-dots {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+
+        .day-mini-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-tertiary);
+            flex-shrink: 0;
+        }
+
+        .day-mini-dots.dots-many .day-mini-dot {
+            width: 5px;
+            height: 5px;
+        }
+
+        .day-mini-dots.dots-few .day-mini-dot {
+            width: 8px;
+            height: 8px;
+        }
+
+        .day-mini-dot.done {
+            background: var(--dot-color);
+            border-color: var(--dot-color);
+        }
+
+        details {
+            background: var(--color-background-primary);
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-lg);
+            padding: 0;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 14px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            list-style: none;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+
+        summary::after {
+            content: "+";
+            font-size: 18px;
+            color: var(--color-text-tertiary);
+        }
+
+        details[open] summary::after {
+            content: "−";
+        }
+
+        .details-content {
+            padding: 0 16px 16px;
+        }
+
+        .other-week-card {
+            background: var(--color-background-secondary);
+            border-radius: var(--border-radius-md);
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .other-week-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .other-week-header:hover .other-week-title {
+            color: var(--color-text-info);
+        }
+
+        .other-week-expand {
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+            margin-left: 4px;
+            transition: transform 0.2s;
+        }
+
+        .other-week-card.expanded .other-week-expand {
+            transform: rotate(180deg);
+        }
+
+        .other-week-detail {
+            display: none;
+            background: var(--color-background-primary);
+            border-radius: var(--border-radius-md);
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .other-week-card.expanded .other-week-detail {
+            display: block;
+        }
+
+        .other-week-detail-desc {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin: 0 0 10px;
+            line-height: 1.5;
+        }
+
+        .other-week-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+
+        .other-week-detail-item {
+            background: var(--color-background-secondary);
+            padding: 8px 10px;
+            border-radius: var(--border-radius-md);
+        }
+
+        .other-week-detail-label {
+            font-size: 10px;
+            color: var(--color-text-tertiary);
+            margin: 0 0 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .other-week-detail-content {
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .other-week-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: var(--border-radius-md);
+            font-weight: 500;
+        }
+
+        .other-week-title {
+            font-size: 13px;
+            font-weight: 500;
+            margin: 0;
+            flex: 1;
+        }
+
+        .other-week-progress {
+            font-size: 11px;
+            color: var(--color-text-tertiary);
+        }
+
+        .other-week-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding: 0 4px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .controls-left {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls-right {
+            display: flex;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        input[type="date"] {
+            padding: 6px 10px;
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-md);
+            background: var(--color-background-primary);
+            color: var(--color-text-primary);
+            font-size: 13px;
+        }
+
+        button {
+            padding: 6px 12px;
+            border: 0.5px solid var(--color-border-secondary);
+            border-radius: var(--border-radius-md);
+            background: transparent;
+            color: var(--color-text-primary);
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--color-background-primary);
+        }
+
+        .checkpoint-banner {
+            background: var(--color-background-info);
+            color: var(--color-text-info);
+            padding: 10px 14px;
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .empty-hint {
+            text-align: center;
+            color: var(--color-text-tertiary);
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--color-background-primary);
+            border-radius: var(--border-radius-lg);
+            padding: 24px;
+            max-width: 440px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0 0 4px;
+        }
+
+        .modal-subtitle {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin: 0;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            color: var(--color-text-tertiary);
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius-md);
+        }
+
+        .modal-close:hover {
+            background: var(--color-background-secondary);
+            color: var(--color-text-primary);
+        }
+
+        .modal-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .modal-task-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--color-background-secondary);
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .modal-task-row:hover {
+            border-color: var(--color-border-secondary);
+        }
+
+        .modal-task-row.done {
+            background: var(--color-background-success);
+        }
+
+        .modal-task-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .modal-task-row i {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .modal-task-name {
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .modal-task-row.done .modal-task-name {
+            text-decoration: line-through;
+            color: var(--color-text-secondary);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 0.5px solid var(--color-border-tertiary);
+        }
+
+        .modal-hint {
+            font-size: 12px;
+            color: var(--color-text-tertiary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal-btn-primary {
+            background: var(--color-text-primary);
+            color: var(--color-background-primary);
+            border: none;
+            padding: 8px 16px;
+            font-weight: 500;
+        }
+
+        .modal-btn-primary:hover {
+            background: var(--color-text-primary);
+            opacity: 0.85;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-bar">
+            <div class="header-info">
+                <h1>今日打卡</h1>
+                <p class="subtitle">每天打卡 · <a href="index.html" style="color: var(--color-text-info); text-decoration: none;">← 返回首页</a></p>
+            </div>
+            <div class="streak-display">
+                <i class="ti ti-calendar-check streak-icon" aria-hidden="true"></i>
+                <div>
+                    <div class="streak-count" id="streak-count">0</div>
+                    <div class="streak-label">天打卡</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="checkpoint-container"></div>
+
+        <div id="today-container"></div>
+
+        <div class="stats-row">
+            <p class="stats-row-title">分维度完成度</p>
+            <div class="dimension-grid" id="dimension-grid"></div>
+        </div>
+
+        <div class="this-week-card">
+            <div class="week-header">
+                <h3 id="this-week-title">本周 · Week 1</h3>
+                <span class="week-progress-text" id="this-week-progress">0 / 7 打卡</span>
+            </div>
+            <div class="days-row" id="this-week-days"></div>
+        </div>
+
+        <details id="past-weeks">
+            <summary><span id="past-weeks-label">已完成的周</span></summary>
+            <div class="details-content" id="past-weeks-content"></div>
+        </details>
+
+        <details id="future-weeks">
+            <summary><span id="future-weeks-label">未来的周</span></summary>
+            <div class="details-content" id="future-weeks-content"></div>
+        </details>
+
+        <div class="controls-bar">
+            <div class="controls-left">
+                <label>开始日期</label>
+                <input type="date" id="start-date" value="2026-05-20" />
+            </div>
+            <div class="controls-right">
+                <button id="import-plan-btn" title="从 .md 文件导入新的学习计划">
+                    <i class="ti ti-file-import" style="font-size: 14px; vertical-align: -2px;" aria-hidden="true"></i> 导入计划
+                </button>
+                <button id="export-btn" title="备份你的打卡记录">备份打卡</button>
+                <button id="import-btn" title="恢复打卡备份">恢复打卡</button>
+                <button id="reset-btn">重置</button>
+            </div>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display: none;" />
+        <input type="file" id="import-plan-file" accept=".md,.markdown,.txt,.json" style="display: none;" />
+    </div>
+
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title" id="modal-title">补打卡</h2>
+                    <p class="modal-subtitle" id="modal-subtitle"></p>
+                </div>
+                <button class="modal-close" id="modal-close" aria-label="关闭">×</button>
+            </div>
+            <div class="modal-tasks" id="modal-tasks"></div>
+            <div class="modal-footer">
+                <span class="modal-hint">勾选/取消即可即时保存</span>
+                <div class="modal-actions">
+                    <button class="modal-btn-primary" id="modal-done">完成</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 配置区 · 改这里就能换内容
+        // ============================================================
+        // 这是一个可配置的学习计划追踪器。修改下面的 CONFIG 对象即可
+        // 把它从"英语学习"换成任何其他主题(雅思、健身、读书等)。
+        //
+        // 字段说明:
+        // - title/subtitle: 页面标题和副标题
+        // - startDate: 计划开始日期(YYYY-MM-DD)
+        // - storageKey: localStorage 的键名(改成独特的,避免和其他计划冲突)
+        // - dailyTasks: 每日任务数组(2-6 个),id 必须唯一
+        //   · 每个任务的 id 必须出现在 themes[].content 里
+        //   · icon 用 Tabler icon 名称: https://tabler.io/icons
+        //   · color 用 hex 颜色
+        // - checkInThreshold: 完成几项算"打卡成功"
+        // - themes: 主题数组,每个主题持续 weeks 周
+        //   · 总周数 = 所有 themes 的 weeks 之和(自动计算)
+        //   · content 的 key 必须对应 dailyTasks 的 id
+        // - checkpoints: 检验点(在某周末显示提醒),week 是周序号
+        // ============================================================
+        const DEFAULT_CONFIG = {
+            title: "今日打卡",
+            subtitle: "导入你的个性化计划(.md 文件)开始 · 这是默认示例",
+            startDate: "2026-05-20",
+            storageKey: "demoTracker",
+
+            dailyTasks: [
+                { id: 'morning', name: '晨间习惯', detail: '15 分钟 · 早起后的第一件事', icon: 'ti-coffee', color: '#378add' },
+                { id: 'focus', name: '专注时段', detail: '30 分钟 · 主要任务深度推进', icon: 'ti-bulb', color: '#1D9E75' },
+                { id: 'move', name: '身体活动', detail: '20 分钟 · 任何形式的运动', icon: 'ti-walk', color: '#D85A30' },
+                { id: 'reflect', name: '复盘记录', detail: '5 分钟 · 一句话总结今天', icon: 'ti-notes', color: '#7F77DD' }
+            ],
+
+            checkInThreshold: 3,
+
+            themes: [
+                {
+                    weeks: 2,
+                    title: '示例主题 · 习惯启动',
+                    description: '这是一个示例计划 · 请用「导入计划」加载你自己的 .md',
+                    color: '#EEEDFE', textColor: '#3C3489',
+                    content: {
+                        morning: '建立晨间习惯(起床喝水 + 简单拉伸)',
+                        focus: '挑一件最近一直想做但没做的事,每天推进 30 分钟',
+                        move: '出门走 20 分钟 · 别在乎多远多快',
+                        reflect: '睡前一句话:今天哪件事让我满意?'
+                    }
+                },
+                {
+                    weeks: 2,
+                    title: '示例主题 · 节奏稳定',
+                    description: '继续示例 · 实际计划由你和 AI 一起设计',
+                    color: '#E1F5EE', textColor: '#085041',
+                    content: {
+                        morning: '把晨间习惯固化下来,不再依赖意志力',
+                        focus: '本周开始尝试"专注 25 分钟 + 休息 5 分钟"番茄钟',
+                        move: '把走路升级成快走或慢跑',
+                        reflect: '每天一句话 + 周末看本周记录'
+                    }
+                },
+                {
+                    weeks: 8,
+                    title: '示例主题 · 等你的真实计划',
+                    description: '打开 AI 对话,使用 habit-plan skill 生成属于你的 12 周计划',
+                    color: '#FAECE7', textColor: '#712B13',
+                    content: {
+                        morning: '你的真实主题会替代这里',
+                        focus: '你的真实主题会替代这里',
+                        move: '你的真实主题会替代这里',
+                        reflect: '你的真实主题会替代这里'
+                    }
+                }
+            ],
+
+            checkpoints: [
+                { week: 4, text: '示例检验点 · 看看自己 4 周后什么样' },
+                { week: 12, text: '示例检验点 · 完整复盘 + 规划下季度' }
+            ]
+        };
+
+        // ============================================================
+        // CONFIG 加载 · 优先用导入的,否则用默认
+        // ============================================================
+        const IMPORTED_CONFIG_KEY = 'importedPlanConfig';
+
+        function loadConfig() {
+            try {
+                const stored = localStorage.getItem(IMPORTED_CONFIG_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    const errors = validateConfig(parsed);
+                    if (errors.length === 0) return parsed;
+                    console.warn('导入的 CONFIG 校验失败,回退默认:', errors);
+                }
+            } catch (e) {
+                console.warn('CONFIG 解析失败,回退默认:', e);
+            }
+            return DEFAULT_CONFIG;
+        }
+
+        const CONFIG = loadConfig();
+
+        // ============================================================
+        // 配置校验 · 不要修改
+        // ============================================================
+        function validateConfig(cfg) {
+            const errors = [];
+            if (!cfg.title) errors.push('缺少 title');
+            if (!cfg.startDate || !/^\d{4}-\d{2}-\d{2}$/.test(cfg.startDate)) errors.push('startDate 格式错误,应为 YYYY-MM-DD');
+            if (!Array.isArray(cfg.dailyTasks) || cfg.dailyTasks.length < 2 || cfg.dailyTasks.length > 6) {
+                errors.push('dailyTasks 数量必须在 2-6 之间');
+            }
+            const taskIds = new Set();
+            cfg.dailyTasks.forEach((t, i) => {
+                if (!t.id) errors.push(`dailyTasks[${i}] 缺少 id`);
+                if (taskIds.has(t.id)) errors.push(`dailyTasks[${i}] id 重复: ${t.id}`);
+                taskIds.add(t.id);
+                if (!t.name) errors.push(`dailyTasks[${i}] 缺少 name`);
+                if (!t.icon) errors.push(`dailyTasks[${i}] 缺少 icon`);
+                if (!t.color) errors.push(`dailyTasks[${i}] 缺少 color`);
+            });
+            if (!Array.isArray(cfg.themes) || cfg.themes.length === 0) {
+                errors.push('themes 不能为空');
+            }
+            cfg.themes.forEach((t, i) => {
+                if (!t.weeks || t.weeks < 1) errors.push(`themes[${i}] weeks 必须 >= 1`);
+                if (!t.title) errors.push(`themes[${i}] 缺少 title`);
+                if (!t.color) errors.push(`themes[${i}] 缺少 color`);
+                if (!t.textColor) errors.push(`themes[${i}] 缺少 textColor`);
+                if (!t.content) errors.push(`themes[${i}] 缺少 content`);
+                else {
+                    cfg.dailyTasks.forEach(task => {
+                        if (!t.content[task.id]) {
+                            errors.push(`themes[${i}].content 缺少 "${task.id}" 字段`);
+                        }
+                    });
+                }
+            });
+            if (typeof cfg.checkInThreshold !== 'number' || cfg.checkInThreshold < 1 || cfg.checkInThreshold > cfg.dailyTasks.length) {
+                errors.push(`checkInThreshold 必须在 1 到 ${cfg.dailyTasks.length} 之间`);
+            }
+            return errors;
+        }
+
+        const configErrors = validateConfig(CONFIG);
+        if (configErrors.length > 0) {
+            document.body.innerHTML = '<div style="padding: 40px; font-family: monospace; color: #c00;"><h2>配置错误,请修复:</h2><ul>' + 
+                configErrors.map(e => `<li>${e}</li>`).join('') + '</ul></div>';
+            throw new Error('CONFIG validation failed');
+        }
+
+        // 派生量
+        const TOTAL_WEEKS = CONFIG.themes.reduce((sum, t) => sum + t.weeks, 0);
+        const TOTAL_DAYS = TOTAL_WEEKS * 7;
+        const MIN_TASKS_FOR_CHECKIN = CONFIG.checkInThreshold;
+
+        // 把 themes 展平为按周索引(weekIndex => theme)
+        const weekToTheme = [];
+        {
+            let weekCounter = 0;
+            CONFIG.themes.forEach((theme, themeIdx) => {
+                const startWeek = weekCounter + 1;
+                const endWeek = weekCounter + theme.weeks;
+                for (let w = startWeek; w <= endWeek; w++) {
+                    weekToTheme[w] = {
+                        ...theme,
+                        weekLabel: theme.weeks === 1 ? `Week ${startWeek}` : `Week ${startWeek}-${endWeek}`,
+                        themeIndex: themeIdx
+                    };
+                }
+                weekCounter += theme.weeks;
+            });
+        }
+
+        function getThemeForWeek(weekNum) {
+            return weekToTheme[weekNum];
+        }
+
+        const dailyTasks = CONFIG.dailyTasks;
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+        // 应用 CONFIG 的标题和副标题
+        document.title = CONFIG.title;
+        document.querySelector('h1').textContent = CONFIG.title;
+        document.querySelector('.subtitle').textContent = CONFIG.subtitle;
+
+        // 应用 CONFIG 的默认日期
+        document.getElementById('start-date').value = CONFIG.startDate;
+
+        // 动态生成 dimension-grid
+        (function buildDimensionGrid() {
+            const grid = document.getElementById('dimension-grid');
+            dailyTasks.forEach(task => {
+                const item = document.createElement('div');
+                item.className = 'dimension-item';
+                item.innerHTML = `
+                    <div class="dimension-header">
+                        <i class="ti ${task.icon}" style="color: ${task.color};" aria-hidden="true"></i>
+                        <span class="dimension-name">${task.name}</span>
+                    </div>
+                    <p class="dimension-value" id="dim-${task.id}">0 / ${TOTAL_DAYS}</p>
+                    <div class="dimension-bar">
+                        <div class="dimension-bar-fill" id="dim-${task.id}-bar" style="background: ${task.color}; width: 0%;"></div>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        })();
+
+        let planData = JSON.parse(localStorage.getItem(CONFIG.storageKey) || '{}');
+
+        function getStartDate() {
+            return document.getElementById('start-date').value;
+        }
+
+        function getToday() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return today;
+        }
+
+        function getDaysSinceStart() {
+            const start = new Date(getStartDate());
+            start.setHours(0, 0, 0, 0);
+            const diff = Math.floor((getToday() - start) / (1000 * 60 * 60 * 24));
+            return diff;
+        }
+
+        function getCurrentWeek() {
+            const days = getDaysSinceStart();
+            if (days < 0) return 0;
+            return Math.min(TOTAL_WEEKS, Math.floor(days / 7) + 1);
+        }
+
+        function getTodayWeekDay() {
+            const days = getDaysSinceStart();
+            if (days < 0) return null;
+            const weekNum = Math.floor(days / 7) + 1;
+            const dayNum = (days % 7) + 1;
+            if (weekNum > TOTAL_WEEKS) return null;
+            return { week: weekNum, day: dayNum };
+        }
+
+        function getDayKey(weekNum, dayNum) {
+            return `w${weekNum}d${dayNum}`;
+        }
+
+        function getDayData(weekNum, dayNum) {
+            return planData[getDayKey(weekNum, dayNum)] || {};
+        }
+
+        function toggleTask(weekNum, dayNum, taskId) {
+            const dayKey = getDayKey(weekNum, dayNum);
+            if (!planData[dayKey]) planData[dayKey] = {};
+            planData[dayKey][taskId] = !planData[dayKey][taskId];
+            localStorage.setItem(CONFIG.storageKey, JSON.stringify(planData));
+            render();
+        }
+
+        function isDayComplete(weekNum, dayNum) {
+            const day = getDayData(weekNum, dayNum);
+            return dailyTasks.every(task => day[task.id]);
+        }
+
+        function getDayCompletedCount(weekNum, dayNum) {
+            const day = getDayData(weekNum, dayNum);
+            return dailyTasks.filter(task => day[task.id]).length;
+        }
+
+        function isDayCheckedIn(weekNum, dayNum) {
+            const day = getDayData(weekNum, dayNum);
+            const count = dailyTasks.filter(task => day[task.id]).length;
+            return count >= MIN_TASKS_FOR_CHECKIN;
+        }
+
+        function getAccumulatedDays() {
+            let total = 0;
+            let fullDays = 0;
+            for (let w = 1; w <= TOTAL_WEEKS; w++) {
+                for (let d = 1; d <= 7; d++) {
+                    if (isDayCheckedIn(w, d)) total++;
+                    if (isDayComplete(w, d)) fullDays++;
+                }
+            }
+            return { total, fullDays };
+        }
+
+        function getTaskCompletedDays(taskId) {
+            let count = 0;
+            for (let w = 1; w <= TOTAL_WEEKS; w++) {
+                for (let d = 1; d <= 7; d++) {
+                    if (getDayData(w, d)[taskId]) count++;
+                }
+            }
+            return count;
+        }
+
+        function getDateForWeekDay(weekNum, dayNum) {
+            const start = new Date(getStartDate());
+            start.setHours(0, 0, 0, 0);
+            const date = new Date(start);
+            date.setDate(start.getDate() + (weekNum - 1) * 7 + (dayNum - 1));
+            return date;
+        }
+
+        function formatDate(date) {
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+
+        function renderTodayCard() {
+            const container = document.getElementById('today-container');
+            const todayWD = getTodayWeekDay();
+            
+            if (!todayWD) {
+                const daysSinceStart = getDaysSinceStart();
+                if (daysSinceStart < 0) {
+                    container.innerHTML = `<div class="today-card"><p class="empty-hint">计划还没开始 · 开始日期：${getStartDate()}</p></div>`;
+                } else {
+                    container.innerHTML = `<div class="today-card all-done"><p class="empty-hint">🎉 计划已完成 · 该做总结和下一阶段规划了</p></div>`;
+                }
+                return;
+            }
+
+            const { week: weekNum, day: dayNum } = todayWD;
+            
+            const theme = getThemeForWeek(weekNum);
+            const todayDate = getDateForWeekDay(weekNum, dayNum);
+            const dayData = getDayData(weekNum, dayNum);
+            const completedCount = getDayCompletedCount(weekNum, dayNum);
+            const isCheckedIn = completedCount >= MIN_TASKS_FOR_CHECKIN;
+            const isFullDay = completedCount === 4;
+
+            const card = document.createElement('div');
+            card.className = 'today-card' + (isCheckedIn ? ' all-done' : '');
+
+            let statusText;
+            if (isFullDay) {
+                statusText = '今日全勤 ✓';
+            } else if (isCheckedIn) {
+                statusText = `今日已打卡（${completedCount} / 4 项）`;
+            } else {
+                statusText = `已完成 ${completedCount} / 4 项 · 完成 ${MIN_TASKS_FOR_CHECKIN} 项即算打卡`;
+            }
+
+            card.innerHTML = `
+                <div class="today-header">
+                    <div>
+                        <p class="today-date">${formatDate(todayDate)} ${weekdays[todayDate.getDay()]} · 今天</p>
+                        <h2 class="today-title">${theme.title}</h2>
+                    </div>
+                    <span class="today-theme-badge" style="background: ${theme.color}; color: ${theme.textColor};">${theme.weekLabel}</span>
+                </div>
+                <p class="today-progress">${statusText} · Week ${weekNum} 第 ${dayNum} 天</p>
+                <div class="today-tasks" id="today-tasks"></div>
+                <div class="today-content-card">
+                    <p class="today-content-title">本周主题内容</p>
+                    <div class="today-content-grid">
+                        ${dailyTasks.map(task => `
+                            <div class="today-content-item"><span class="today-content-label">${task.name}:</span>${theme.content[task.id] || ''}</div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            container.innerHTML = '';
+            container.appendChild(card);
+
+            const tasksContainer = document.getElementById('today-tasks');
+            dailyTasks.forEach(task => {
+                const isDone = !!dayData[task.id];
+                const row = document.createElement('label');
+                row.className = 'today-task-row' + (isDone ? ' done' : '');
+                row.innerHTML = `
+                    <input type="checkbox" ${isDone ? 'checked' : ''} data-week="${weekNum}" data-day="${dayNum}" data-task="${task.id}">
+                    <i class="ti ${task.icon} today-task-icon" style="color: ${task.color};" aria-hidden="true"></i>
+                    <div class="today-task-info">
+                        <p class="today-task-name">${task.name}</p>
+                        <p class="today-task-detail">${task.detail}</p>
+                    </div>
+                `;
+                tasksContainer.appendChild(row);
+            });
+        }
+
+        function renderThisWeek() {
+            const todayWD = getTodayWeekDay();
+            const titleEl = document.getElementById('this-week-title');
+            const progressEl = document.getElementById('this-week-progress');
+            const daysEl = document.getElementById('this-week-days');
+
+            if (!todayWD) {
+                titleEl.textContent = '本周';
+                progressEl.textContent = '--';
+                daysEl.innerHTML = '<p class="empty-hint" style="grid-column: 1 / -1;">无当前周</p>';
+                return;
+            }
+
+            const { week: weekNum } = todayWD;
+            
+            const theme = getThemeForWeek(weekNum);
+            const weekCheckIn = [1,2,3,4,5,6,7].filter(d => isDayCheckedIn(weekNum, d)).length;
+            const weekFullDays = [1,2,3,4,5,6,7].filter(d => isDayComplete(weekNum, d)).length;
+
+            titleEl.textContent = `本周 · Week ${weekNum} · ${theme.title}`;
+            progressEl.textContent = `${weekCheckIn} / 7 打卡 · ${weekFullDays} 全勤`;
+            daysEl.innerHTML = '';
+
+            for (let dayNum = 1; dayNum <= 7; dayNum++) {
+                const dayDate = getDateForWeekDay(weekNum, dayNum);
+                const today = getToday();
+                const isPast = dayDate <= today;
+                const isToday = dayDate.getTime() === today.getTime();
+                const dayCheckedIn = isDayCheckedIn(weekNum, dayNum);
+                const dayData = getDayData(weekNum, dayNum);
+
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-mini';
+                if (dayCheckedIn) {
+                    dayCard.classList.add('complete');
+                    dayCard.style.setProperty('--theme-color', theme.color);
+                }
+                if (isToday) dayCard.classList.add('today');
+                if (!isPast) dayCard.classList.add('future');
+
+                const dotsClass = dailyTasks.length <= 3 ? "dots-few" : dailyTasks.length >= 5 ? "dots-many" : "";
+                let dotsHTML = `<div class="day-mini-dots ${dotsClass}">`;
+                dailyTasks.forEach(task => {
+                    const done = !!dayData[task.id];
+                    dotsHTML += `<span class="day-mini-dot${done ? ' done' : ''}" style="--dot-color: ${task.color};"></span>`;
+                });
+                dotsHTML += '</div>';
+
+                dayCard.innerHTML = `
+                    <p class="day-mini-weekday">${weekdays[dayDate.getDay()]}</p>
+                    <p class="day-mini-date">${formatDate(dayDate)}</p>
+                    ${dotsHTML}
+                `;
+                
+                if (isPast) {
+                    dayCard.addEventListener('click', () => {
+                        showDayQuickEdit(weekNum, dayNum);
+                    });
+                }
+
+                daysEl.appendChild(dayCard);
+            }
+        }
+
+        let currentEditTarget = null;
+
+        function showDayQuickEdit(weekNum, dayNum) {
+            currentEditTarget = { weekNum, dayNum };
+            const dayDate = getDateForWeekDay(weekNum, dayNum);
+            const today = getToday();
+            const isToday = dayDate.getTime() === today.getTime();
+            const dateStr = `${formatDate(dayDate)} ${weekdays[dayDate.getDay()]}`;
+            
+            document.getElementById('modal-title').textContent = isToday ? '今日打卡' : '补打卡';
+            document.getElementById('modal-subtitle').textContent = `${dateStr} · Week ${weekNum} 第 ${dayNum} 天`;
+            
+            renderModalTasks();
+            document.getElementById('edit-modal').classList.add('show');
+        }
+
+        function renderModalTasks() {
+            if (!currentEditTarget) return;
+            const { weekNum, dayNum } = currentEditTarget;
+            const dayData = getDayData(weekNum, dayNum);
+            const container = document.getElementById('modal-tasks');
+            container.innerHTML = '';
+
+            dailyTasks.forEach(task => {
+                const isDone = !!dayData[task.id];
+                const row = document.createElement('label');
+                row.className = 'modal-task-row' + (isDone ? ' done' : '');
+                row.innerHTML = `
+                    <input type="checkbox" ${isDone ? 'checked' : ''} data-task="${task.id}">
+                    <i class="ti ${task.icon}" style="color: ${task.color};" aria-hidden="true"></i>
+                    <span class="modal-task-name">${task.name}</span>
+                `;
+                container.appendChild(row);
+            });
+
+            container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    e.stopPropagation();
+                    const taskId = this.dataset.task;
+                    const dayKey = getDayKey(weekNum, dayNum);
+                    if (!planData[dayKey]) planData[dayKey] = {};
+                    planData[dayKey][taskId] = this.checked;
+                    localStorage.setItem(CONFIG.storageKey, JSON.stringify(planData));
+                    renderModalTasks();
+                });
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.remove('show');
+            currentEditTarget = null;
+            render();
+        }
+
+        document.getElementById('modal-close').addEventListener('click', closeModal);
+        document.getElementById('modal-done').addEventListener('click', closeModal);
+        document.getElementById('edit-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'edit-modal') closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('edit-modal').classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        function renderStats() {
+            const accumulated = getAccumulatedDays();
+            document.getElementById('streak-count').textContent = accumulated.total;
+            
+            const streakLabel = document.querySelector('.streak-label');
+            if (accumulated.fullDays > 0) {
+                streakLabel.textContent = `天 · ${accumulated.fullDays} 天全勤`;
+            } else {
+                streakLabel.textContent = '天打卡';
+            }
+            
+            dailyTasks.forEach(task => {
+                const count = getTaskCompletedDays(task.id);
+                const percent = Math.round((count / TOTAL_DAYS) * 100);
+                document.getElementById(`dim-${task.id}`).textContent = `${count} / TOTAL_DAYS`;
+                document.getElementById(`dim-${task.id}-bar`).style.width = `${percent}%`;
+            });
+        }
+
+        function renderOtherWeeks() {
+            const todayWD = getTodayWeekDay();
+            const currentWeek = todayWD ? todayWD.week : (getDaysSinceStart() < 0 ? 0 : TOTAL_WEEKS + 1);
+            
+            const pastContent = document.getElementById('past-weeks-content');
+            const futureContent = document.getElementById('future-weeks-content');
+            const pastLabel = document.getElementById('past-weeks-label');
+            const futureLabel = document.getElementById('future-weeks-label');
+            
+            pastContent.innerHTML = '';
+            futureContent.innerHTML = '';
+
+            let pastCount = 0;
+            let futureCount = 0;
+
+            for (let weekNum = 1; weekNum <= TOTAL_WEEKS; weekNum++) {
+                if (weekNum === currentWeek) continue;
+                const isPast = weekNum < currentWeek;
+                
+                const theme = getThemeForWeek(weekNum);
+                
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'other-week-card';
+                
+                const checkInDays = [1,2,3,4,5,6,7].filter(d => isDayCheckedIn(weekNum, d)).length;
+
+                weekDiv.innerHTML = `
+                    <div class="other-week-header" data-week="${weekNum}">
+                        <span class="other-week-badge" style="background: ${theme.color}; color: ${theme.textColor};">W${weekNum}</span>
+                        <p class="other-week-title">${theme.title}</p>
+                        ${isPast ? `<span class="other-week-progress">${checkInDays}/7</span>` : ''}
+                        <span class="other-week-expand">▼</span>
+                    </div>
+                    <div class="other-week-detail">
+                        ${theme.description ? `<p class="other-week-detail-desc">${theme.description}</p>` : ''}
+                        <div class="other-week-detail-grid">
+                            ${dailyTasks.map(task => `
+                                <div class="other-week-detail-item">
+                                    <p class="other-week-detail-label">${task.name}</p>
+                                    <p class="other-week-detail-content">${theme.content[task.id] || ''}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="other-week-days" id="other-w${weekNum}-days"></div>
+                `;
+
+                const headerEl = weekDiv.querySelector('.other-week-header');
+                headerEl.addEventListener('click', (e) => {
+                    weekDiv.classList.toggle('expanded');
+                });
+
+                if (isPast) {
+                    pastContent.appendChild(weekDiv);
+                    pastCount++;
+                } else {
+                    futureContent.appendChild(weekDiv);
+                    futureCount++;
+                }
+
+                const daysContainer = weekDiv.querySelector(`#other-w${weekNum}-days`);
+                for (let dayNum = 1; dayNum <= 7; dayNum++) {
+                    const dayDate = getDateForWeekDay(weekNum, dayNum);
+                    const today = getToday();
+                    const isPastDay = dayDate <= today;
+                    const dayCheckedIn = isDayCheckedIn(weekNum, dayNum);
+                    const dayData = getDayData(weekNum, dayNum);
+
+                    const dayCard = document.createElement('div');
+                    dayCard.className = 'day-mini';
+                    if (dayCheckedIn) {
+                        dayCard.classList.add('complete');
+                        dayCard.style.setProperty('--theme-color', theme.color);
+                    }
+                    if (!isPastDay) dayCard.classList.add('future');
+
+                    const dotsClass = dailyTasks.length <= 3 ? "dots-few" : dailyTasks.length >= 5 ? "dots-many" : "";
+                let dotsHTML = `<div class="day-mini-dots ${dotsClass}">`;
+                    dailyTasks.forEach(task => {
+                        const done = !!dayData[task.id];
+                        dotsHTML += `<span class="day-mini-dot${done ? ' done' : ''}" style="--dot-color: ${task.color};"></span>`;
+                    });
+                    dotsHTML += '</div>';
+
+                    dayCard.innerHTML = `
+                        <p class="day-mini-weekday">${weekdays[dayDate.getDay()]}</p>
+                        <p class="day-mini-date">${formatDate(dayDate)}</p>
+                        ${dotsHTML}
+                    `;
+
+                    if (isPastDay) {
+                        dayCard.addEventListener('click', () => {
+                            showDayQuickEdit(weekNum, dayNum);
+                        });
+                    }
+
+                    daysContainer.appendChild(dayCard);
+                }
+            }
+
+            pastLabel.textContent = `已过去的周（${pastCount}）`;
+            futureLabel.textContent = `未来的周（${futureCount}）`;
+
+            document.getElementById('past-weeks').style.display = pastCount > 0 ? 'block' : 'none';
+            document.getElementById('future-weeks').style.display = futureCount > 0 ? 'block' : 'none';
+        }
+
+        function renderCheckpoint() {
+            const todayWD = getTodayWeekDay();
+            const container = document.getElementById('checkpoint-container');
+            container.innerHTML = '';
+            if (!todayWD) return;
+
+            const { week: weekNum, day: dayNum } = todayWD;
+            
+            if (dayNum === 7) {
+                const checkpoint = CONFIG.checkpoints.find(cp => cp.week === weekNum);
+                if (checkpoint) {
+                    const banner = document.createElement('div');
+                    banner.className = 'checkpoint-banner';
+                    banner.innerHTML = `<i class="ti ti-flag" aria-hidden="true"></i><span>检验点:本周该做 ${checkpoint.text}</span>`;
+                    container.appendChild(banner);
+                }
+            }
+        }
+
+        function render() {
+            renderTodayCard();
+            renderCheckpoint();
+            renderStats();
+            renderThisWeek();
+            renderOtherWeeks();
+
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', function(e) {
+                    e.stopPropagation();
+                    const weekNum = parseInt(this.dataset.week);
+                    const dayNum = parseInt(this.dataset.day);
+                    const taskId = this.dataset.task;
+                    toggleTask(weekNum, dayNum, taskId);
+                });
+            });
+        }
+
+        document.getElementById('start-date').addEventListener('change', () => {
+            localStorage.setItem('planStartDate', getStartDate());
+            render();
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            const isUsingImported = localStorage.getItem(IMPORTED_CONFIG_KEY) !== null;
+            const choice = prompt(
+                '重置选项:\n\n' +
+                '输入 1 = 只清空打卡记录(保留当前计划)\n' +
+                (isUsingImported ? '输入 2 = 清空打卡 + 移除导入的计划(回到默认计划)\n' : '') +
+                '\n直接确定 = 取消'
+            );
+            if (choice === '1') {
+                if (confirm('确定要清空所有打卡记录吗?建议先点"备份打卡"。')) {
+                    planData = {};
+                    localStorage.setItem(CONFIG.storageKey, '{}');
+                    render();
+                }
+            } else if (choice === '2' && isUsingImported) {
+                if (confirm('确定移除导入的计划并清空打卡?这会让页面回到默认计划。')) {
+                    localStorage.removeItem(IMPORTED_CONFIG_KEY);
+                    localStorage.removeItem(CONFIG.storageKey);
+                    localStorage.removeItem('planStartDate');
+                    location.reload();
+                }
+            }
+        });
+
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const data = {
+                startDate: getStartDate(),
+                planData: planData,
+                exportedAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `english-plan-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('import-btn').addEventListener('click', () => {
+            document.getElementById('import-file').click();
+        });
+
+        document.getElementById('import-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.startDate && data.planData) {
+                        if (confirm('确定导入这份数据吗？当前数据会被覆盖。')) {
+                            document.getElementById('start-date').value = data.startDate;
+                            localStorage.setItem('planStartDate', data.startDate);
+                            planData = data.planData;
+                            localStorage.setItem(CONFIG.storageKey, JSON.stringify(planData));
+                            render();
+                        }
+                    } else {
+                        alert('文件格式不对');
+                    }
+                } catch (err) {
+                    alert('解析失败：' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // ============================================================
+        // 导入计划(从 .md 文件提取 CONFIG)
+        // ============================================================
+        function extractConfigFromText(text) {
+            // 尝试 1: 从 ```json ... ``` 代码块提取
+            const jsonBlock = text.match(/```json\s*([\s\S]*?)```/i);
+            if (jsonBlock) {
+                try {
+                    return { config: JSON.parse(jsonBlock[1].trim()), source: 'json-block' };
+                } catch (e) {
+                    return { error: 'json 代码块解析失败: ' + e.message };
+                }
+            }
+            // 尝试 2: 从 ```javascript const CONFIG = ... ``` 提取
+            const jsBlock = text.match(/```(?:javascript|js)?\s*const\s+CONFIG\s*=\s*([\s\S]*?);\s*```/i);
+            if (jsBlock) {
+                try {
+                    // 用 Function 解析(更安全),但仍要 JSON 化所需的形式
+                    const obj = new Function('return ' + jsBlock[1])();
+                    return { config: obj, source: 'js-block' };
+                } catch (e) {
+                    return { error: 'JavaScript CONFIG 块解析失败: ' + e.message };
+                }
+            }
+            // 尝试 3: 文件本身就是 JSON
+            try {
+                return { config: JSON.parse(text), source: 'plain-json' };
+            } catch (e) {
+                // 不是 JSON
+            }
+            return { error: '在文件里没找到 json 代码块,也不是纯 JSON 文件。请检查文件格式。' };
+        }
+
+        document.getElementById('import-plan-btn').addEventListener('click', () => {
+            document.getElementById('import-plan-file').click();
+        });
+
+        document.getElementById('import-plan-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target.result;
+                const result = extractConfigFromText(text);
+                
+                if (result.error) {
+                    alert('导入失败:\n\n' + result.error);
+                    e.target.value = '';
+                    return;
+                }
+                
+                const errors = validateConfig(result.config);
+                if (errors.length > 0) {
+                    alert('计划配置校验失败,请检查文件:\n\n' + errors.join('\n'));
+                    e.target.value = '';
+                    return;
+                }
+                
+                // 计划合法,询问是否清空旧打卡数据
+                const newPlanTitle = result.config.title;
+                const newStorageKey = result.config.storageKey;
+                const currentStorageKey = CONFIG.storageKey;
+                const hasOldData = Object.keys(planData).length > 0;
+                
+                let confirmMsg = `准备导入新计划:「${newPlanTitle}」\n\n`;
+                let shouldClearData = true;
+                
+                if (hasOldData && newStorageKey === currentStorageKey) {
+                    // 同一个 storageKey,问是否保留打卡
+                    confirmMsg += '检测到当前已有打卡记录,且新计划的 storageKey 与当前相同。\n\n';
+                    confirmMsg += '点击"确定" = 保留当前打卡记录\n';
+                    confirmMsg += '点击"取消" = 清空打卡重新开始';
+                    shouldClearData = !confirm(confirmMsg);
+                } else if (hasOldData) {
+                    confirmMsg += '检测到当前已有打卡记录。新计划使用不同的 storageKey,旧打卡数据会保留在原 key 下但不会显示。\n\n';
+                    confirmMsg += '点击"确定"继续导入,点击"取消"取消导入。';
+                    if (!confirm(confirmMsg)) {
+                        e.target.value = '';
+                        return;
+                    }
+                } else {
+                    confirmMsg += '点击"确定"导入计划,开始打卡。';
+                    if (!confirm(confirmMsg)) {
+                        e.target.value = '';
+                        return;
+                    }
+                }
+                
+                // 保存新 CONFIG
+                localStorage.setItem(IMPORTED_CONFIG_KEY, JSON.stringify(result.config));
+                
+                // 如果用户同意清空,且 storageKey 相同 → 清空打卡
+                if (shouldClearData && newStorageKey === currentStorageKey) {
+                    localStorage.removeItem(currentStorageKey);
+                }
+                
+                // 重置开始日期为新计划的
+                localStorage.setItem('planStartDate', result.config.startDate);
+                
+                alert('计划导入成功!页面即将刷新。');
+                location.reload();
+            };
+            reader.readAsText(file);
+        });
+
+        const savedStartDate = localStorage.getItem('planStartDate');
+        if (savedStartDate) {
+            document.getElementById('start-date').value = savedStartDate;
+        }
+
+        render();
+    </script>
+</body>
+</html>

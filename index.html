@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打卡 · 个性化习惯计划生成器</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/1.119.0/fonts/tabler-icons.min.css">
+    <style>
+        :root {
+            --bg: #faf7f2;
+            --bg-card: #ffffff;
+            --bg-accent: #f2ede4;
+            --ink: #2a2419;
+            --ink-soft: #6b5f4d;
+            --ink-faint: #9c907c;
+            --rule: #e6dfd1;
+            --accent: #b8420f;
+            --accent-soft: #f4e8df;
+            --serif: 'Crimson Pro', 'Noto Serif SC', Georgia, serif;
+            --sans: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--sans);
+            font-size: 16px;
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--rule);
+            margin-bottom: 56px;
+        }
+
+        .brand {
+            font-family: var(--serif);
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+        }
+
+        .brand .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin-left: 4px;
+            margin-bottom: 2px;
+        }
+
+        .meta {
+            font-family: var(--serif);
+            font-style: italic;
+            font-size: 13px;
+            color: var(--ink-faint);
+        }
+
+        /* Hero */
+        .hero {
+            margin-bottom: 80px;
+        }
+
+        .eyebrow {
+            font-family: var(--serif);
+            font-style: italic;
+            font-size: 14px;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-family: var(--serif);
+            font-size: 56px;
+            font-weight: 500;
+            line-height: 1.1;
+            letter-spacing: -0.025em;
+            margin-bottom: 24px;
+            color: var(--ink);
+        }
+
+        h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .lead {
+            font-size: 18px;
+            color: var(--ink-soft);
+            line-height: 1.7;
+            max-width: 540px;
+            margin-bottom: 32px;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            font-family: var(--sans);
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--ink);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--ink);
+            border: 1px solid var(--rule);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--ink);
+        }
+
+        .btn i {
+            font-size: 16px;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 80px;
+        }
+
+        h2 {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+        }
+
+        h2 .num {
+            font-family: var(--serif);
+            font-style: italic;
+            font-size: 18px;
+            color: var(--accent);
+            font-weight: 400;
+        }
+
+        .section-lead {
+            color: var(--ink-soft);
+            margin-bottom: 36px;
+            font-size: 16px;
+        }
+
+        /* Steps */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .step {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            font-family: var(--serif);
+            font-size: 32px;
+            font-style: italic;
+            color: var(--accent);
+            line-height: 1;
+            flex-shrink: 0;
+            padding-top: 4px;
+        }
+
+        .step-content h3 {
+            font-family: var(--serif);
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .step-content p {
+            color: var(--ink-soft);
+            font-size: 15px;
+        }
+
+        .step-content code {
+            font-family: 'SF Mono', Menlo, monospace;
+            font-size: 13px;
+            background: var(--bg-accent);
+            padding: 1px 6px;
+            border-radius: 3px;
+            color: var(--accent);
+        }
+
+        /* Example cards */
+        .examples-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .example-card {
+            background: var(--bg-card);
+            border: 1px solid var(--rule);
+            border-radius: 8px;
+            padding: 22px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .example-card:hover {
+            border-color: var(--ink);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        }
+
+        .example-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .example-card[data-color="blue"] .example-icon { background: #E0EBF7; color: #1A4A8C; }
+        .example-card[data-color="green"] .example-icon { background: #E1F0E5; color: #1F5A30; }
+        .example-card[data-color="orange"] .example-icon { background: #F7E8D9; color: #8C4A1A; }
+        .example-card[data-color="purple"] .example-icon { background: #ECE5F7; color: #3A2A6B; }
+
+        .example-card h3 {
+            font-family: var(--serif);
+            font-size: 19px;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .example-card .desc {
+            font-size: 13px;
+            color: var(--ink-soft);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .example-card .meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--ink-faint);
+            margin-top: 4px;
+        }
+
+        .example-card .download {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* AI prompt block */
+        .prompt-block {
+            background: var(--bg-card);
+            border: 1px solid var(--rule);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .prompt-block-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .prompt-block-label {
+            font-family: var(--serif);
+            font-style: italic;
+            font-size: 14px;
+            color: var(--ink-faint);
+        }
+
+        .prompt-copy {
+            font-size: 12px;
+            color: var(--accent);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: var(--sans);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .prompt-copy:hover {
+            background: var(--accent-soft);
+        }
+
+        .prompt-block pre {
+            font-family: 'SF Mono', Menlo, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--ink);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 96px;
+            padding-top: 32px;
+            border-top: 1px solid var(--rule);
+            font-size: 13px;
+            color: var(--ink-faint);
+            font-family: var(--serif);
+            font-style: italic;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        footer a {
+            color: var(--ink-soft);
+            text-decoration: underline;
+            text-decoration-color: var(--rule);
+            text-underline-offset: 3px;
+        }
+
+        footer a:hover {
+            text-decoration-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 32px 20px 60px; }
+            h1 { font-size: 40px; }
+            h2 { font-size: 26px; }
+            .examples-grid { grid-template-columns: 1fr; }
+            header { flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+
+        /* Subtle decorative element */
+        .ornament {
+            font-family: var(--serif);
+            text-align: center;
+            color: var(--ink-faint);
+            font-size: 18px;
+            margin: 56px 0;
+            letter-spacing: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">打卡<span class="dot"></span></div>
+            <div class="meta">v1 · 给朋友的小工具</div>
+        </header>
+
+        <div class="hero">
+            <div class="eyebrow">— 一份属于你自己的计划</div>
+            <h1>把"我想坚持"变成<br><em>真的坚持下来</em>。</h1>
+            <p class="lead">
+                和 AI 聊几分钟,聊清楚你想做的事(英语、健身、做饭、读书……都行),
+                AI 会给你一份**为你设计的** 12 周打卡计划。然后用这个网站每天打卡。
+            </p>
+            <div class="cta-group">
+                <a href="#how-to" class="btn btn-primary">
+                    <i class="ti ti-arrow-down"></i>
+                    看怎么用
+                </a>
+                <a href="tracker.html" class="btn btn-secondary">
+                    <i class="ti ti-external-link"></i>
+                    直接打开追踪器
+                </a>
+            </div>
+        </div>
+
+        <section id="how-to">
+            <h2><span class="num">i.</span>怎么用</h2>
+            <p class="section-lead">三步,大概 10 分钟搞定。</p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h3>把下面这段 skill 复制到你的 AI 对话框</h3>
+                        <p>用你常用的 AI 都行:Claude、ChatGPT、DeepSeek、豆包……粘贴 skill 后说一句"帮我做个打卡计划",它会引导你聊几轮。</p>
+                        <div class="prompt-block">
+                            <div class="prompt-block-head">
+                                <span class="prompt-block-label">复制下面整段 → 粘贴到 AI 对话框</span>
+                                <button class="prompt-copy" id="copy-skill">复制 skill</button>
+                            </div>
+                            <pre id="skill-content">加载中...</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h3>把 AI 输出的计划保存为 <code>.md</code> 文件</h3>
+                        <p>AI 聊完后会给你一份完整的 markdown 文件。复制整段,保存为 <code>my-plan.md</code>(名字随意)。这份文件就是你的"计划存档"——可以贴到 Notion、网盘、随时回看。</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h3>打开追踪器,导入文件,开始打卡</h3>
+                        <p>点 <a href="tracker.html" style="color: var(--accent);">打开追踪器 →</a>,在右下角点「导入计划」,选你刚保存的 <code>.md</code>。每天来打卡,12 周后你会看到变化。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="ornament">· · ·</div>
+
+        <section id="examples">
+            <h2><span class="num">ii.</span>看看别人的计划长什么样</h2>
+            <p class="section-lead">下面是 4 个示例计划,点开看效果,也可以直接下载试用。</p>
+
+            <div class="examples-grid">
+                <a href="examples/ielts-6-5.md" download class="example-card" data-color="blue">
+                    <div class="example-icon"><i class="ti ti-school"></i></div>
+                    <h3>雅思 6.5 备考</h3>
+                    <p class="desc">中等水平、6 个月时间、考前打基础阶段。听说读写均衡 + 真题穿插。</p>
+                    <div class="meta-row">
+                        <span>学习 · 12 周</span>
+                        <span class="download">下载 .md →</span>
+                    </div>
+                </a>
+
+                <a href="examples/fitness-fat-loss.md" download class="example-card" data-color="green">
+                    <div class="example-icon"><i class="ti ti-barbell"></i></div>
+                    <h3>12 周减脂塑形</h3>
+                    <p class="desc">从习惯建立到饮食结构调整 · 居家可做、不需要器材的版本。</p>
+                    <div class="meta-row">
+                        <span>健身 · 12 周</span>
+                        <span class="download">下载 .md →</span>
+                    </div>
+                </a>
+
+                <a href="examples/cooking-30-dishes.md" download class="example-card" data-color="orange">
+                    <div class="example-icon"><i class="ti ti-tools-kitchen-2"></i></div>
+                    <h3>学做 30 道家常菜</h3>
+                    <p class="desc">从切菜火候到能宴客 · 每周 3-4 道菜递进 · 适合 0 基础起步。</p>
+                    <div class="meta-row">
+                        <span>生活技能 · 12 周</span>
+                        <span class="download">下载 .md →</span>
+                    </div>
+                </a>
+
+                <a href="examples/reading-writing-habit.md" download class="example-card" data-color="purple">
+                    <div class="example-icon"><i class="ti ti-book"></i></div>
+                    <h3>每日阅读 + 写作习惯</h3>
+                    <p class="desc">从 10 分钟微习惯到主题阅读 · 配合每周一次输出 · 把阅读变成生活的一部分。</p>
+                    <div class="meta-row">
+                        <span>长期习惯 · 12 周</span>
+                        <span class="download">下载 .md →</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <div class="ornament">· · ·</div>
+
+        <section>
+            <h2><span class="num">iii.</span>关于这个工具</h2>
+            <p style="margin-bottom: 16px; color: var(--ink-soft);">
+                这是我做给朋友的一个小工具,不是"产品"。设计原则:
+            </p>
+            <ul style="list-style: none; padding-left: 0; color: var(--ink-soft);">
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--rule);">
+                    <strong style="color: var(--ink);">个性化 ≫ 通用模板</strong> · 一份"给所有人"的计划,等于一份"不为任何人"的计划
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--rule);">
+                    <strong style="color: var(--ink);">坚持 ≫ 完美</strong> · 打卡门槛是"完成 3 项"而不是 4 项,允许有不完美的天
+                </li>
+                <li style="padding: 8px 0; border-bottom: 1px solid var(--rule);">
+                    <strong style="color: var(--ink);">累计 ≫ 连续</strong> · 不用"连续 X 天",用"累计打卡 X 天"——断了不归零
+                </li>
+                <li style="padding: 8px 0;">
+                    <strong style="color: var(--ink);">本地优先</strong> · 数据存你自己浏览器,我看不到。换设备记得用"备份打卡"导出
+                </li>
+            </ul>
+        </section>
+
+        <footer>
+            <span>打卡 · <a href="https://github.com/" target="_blank">GitHub</a> · 给朋友的小工具</span>
+            <span>2026</span>
+        </footer>
+    </div>
+
+    <script>
+        // 加载 skill 内容到页面
+        fetch('habit-plan-skill.md')
+            .then(r => r.text())
+            .then(text => {
+                document.getElementById('skill-content').textContent = text;
+            })
+            .catch(() => {
+                document.getElementById('skill-content').textContent = '加载失败 · 请确保 habit-plan-skill.md 和本页面在同一目录';
+            });
+
+        // 复制按钮
+        document.getElementById('copy-skill').addEventListener('click', async () => {
+            const text = document.getElementById('skill-content').textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                const btn = document.getElementById('copy-skill');
+                const orig = btn.textContent;
+                btn.textContent = '已复制 ✓';
+                setTimeout(() => { btn.textContent = orig; }, 2000);
+            } catch (e) {
+                alert('复制失败,请手动选中复制');
+            }
+        });
+    </script>
+</body>
+</html>
